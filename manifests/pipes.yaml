@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pipe-one
+  labels:
+    app: crashftp
+type: Opaque
+data:
+  inUsername: ZXBpel8zMTgzMzI3MQ==
+  inPassword: QVpkSmtIeEk1ZHAwMzJ0
+  outAccessKey: MmZGNlFjMit4QnNxT2R1Qk9vbFNZT3NweWo3bzRzVjdnMWNvRlFGdllyTmV4aEJGNFNUbVFxS1prVng4MG9WWFExT05tU0pxa09YcCtBU3R0Vkg3ZHc9PQ==
+stringData:
+  inHostname: ftpupload.net
+  outContainer: outgoing-one
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pipe-two
+  labels:
+    app: crashftp
+type: Opaque
+data:
+  inUsername: ZXBpel8zMTg0Nzg4NQ==
+  inPassword: TW1LMW5meTdKaUtiSA==
+  outAccessKey: MmZGNlFjMit4QnNxT2R1Qk9vbFNZT3NweWo3bzRzVjdnMWNvRlFGdllyTmV4aEJGNFNUbVFxS1prVng4MG9WWFExT05tU0pxa09YcCtBU3R0Vkg3ZHc9PQ==
+stringData:
+  inHostname: ftpupload.net
+  outContainer: outgoing-two

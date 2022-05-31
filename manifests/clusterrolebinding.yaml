@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: crashftp
+  labels:
+    app: crashftp
+subjects:
+  - kind: ServiceAccount
+    name: crashftp
+    namespace: crashftp
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
