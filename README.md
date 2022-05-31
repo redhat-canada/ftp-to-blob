@@ -1,4 +1,4 @@
-# FTP to Azure Blob
+# Camel-Quarkus: from FTP to Azure Blob
 
 ### Requirements
  - up to 1500 sources FTP/S (different server, username, password, etc)
