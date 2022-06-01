@@ -8,6 +8,7 @@ import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.endpoint.EndpointRouteBuilder;
 import org.apache.camel.component.file.remote.RemoteFile;
 import org.apache.camel.component.kubernetes.KubernetesConstants;
+import org.apache.camel.support.processor.idempotent.MemoryIdempotentRepository;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -31,8 +32,6 @@ public class FtpTransferRoute extends EndpointRouteBuilder {
 
     @Override
     public void configure() throws Exception {
-
-        errorHandler(defaultErrorHandler().disableRedelivery().log("Error"));
 
         from(direct("main")).routeId("main")
                 .loopDoWhile(constant(true))
@@ -66,10 +65,8 @@ public class FtpTransferRoute extends EndpointRouteBuilder {
         String password = getSecret(secret, "inPassword");
         String uri = ftp(username + "@" + hostname + "/files").passiveMode(true).noop(true)
                 .password(password)
-                .readLock("changed")
                 .readLockMinAge("120s")
                 .readLockCheckInterval(5000)
-                .exclude("exclude=inprogress-.*")
                 .maxMessagesPerPoll(1)
                 .sendEmptyMessageWhenIdle(true).getUri();
         log.info("Transferring from uri {}", uri);
