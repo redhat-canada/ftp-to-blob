@@ -3,13 +3,12 @@ package org.acme;
 import io.fabric8.kubernetes.api.model.Secret;
 import org.apache.camel.ConsumerTemplate;
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.endpoint.EndpointRouteBuilder;
 import org.apache.camel.component.file.remote.RemoteFile;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -26,13 +25,11 @@ public class FtpTransferRoute extends EndpointRouteBuilder {
 
         from(direct("transfer")).routeId("transfer")
                 .process(this::prepare)
-                .choice()
                 .filter(simple("${header.continue}"))
                 .toD("azure-storage-blob:kolobok/${header.container}?" +
                         "blobName=${header.filename}&" +
                         "operation=uploadBlockBlob&" +
-                        "accessKey=RAW(${header.accessKey})")
-        ;
+                        "accessKey=RAW(${header.accessKey})");
     }
 
     private void prepare(Exchange exchange) {
@@ -41,10 +38,16 @@ public class FtpTransferRoute extends EndpointRouteBuilder {
         String username = getSecret(secret, "inUsername");
         String password = getSecret(secret, "inPassword");
         String uri = ftp(username + "@" + hostname + "/files").passiveMode(true).noop(true)
-                .password(password).advanced().connectTimeout(2000).getUri();
+                .password(password)
+                .readLock("changed")
+                .readLockMinAge("120s")
+                .readLockCheckInterval(5000)
+                .exclude("exclude=inprogress-.*")
+                .maxMessagesPerPoll(1)
+                .sendEmptyMessageWhenIdle(true).getUri();
         log.info("Transferring from uri {}", uri);
 
-        RemoteFile file = consumer.receiveBody(uri, 5000, RemoteFile.class);
+        RemoteFile file = consumer.receiveBody(uri, RemoteFile.class);
 
         if (file != null) {
             String container = getSecret(secret, "outContainer");
