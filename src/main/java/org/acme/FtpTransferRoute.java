@@ -1,21 +1,15 @@
 package org.acme;
 
 import io.fabric8.kubernetes.api.model.Secret;
-import io.quarkus.runtime.StartupEvent;
 import org.apache.camel.ConsumerTemplate;
 import org.apache.camel.Exchange;
-import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.endpoint.EndpointRouteBuilder;
 import org.apache.camel.component.file.remote.RemoteFile;
-import org.apache.camel.component.kubernetes.KubernetesConstants;
-import org.apache.camel.support.processor.idempotent.MemoryIdempotentRepository;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Map;
 
 @ApplicationScoped
 public class FtpTransferRoute extends EndpointRouteBuilder {
@@ -23,30 +17,8 @@ public class FtpTransferRoute extends EndpointRouteBuilder {
     @Inject
     ConsumerTemplate consumer;
 
-    @Inject
-    ProducerTemplate producer;
-
-    void onStart(@Observes StartupEvent ev) throws Exception {
-        producer.sendBody("direct:main", "");
-    }
-
     @Override
     public void configure() throws Exception {
-
-        from(direct("main")).routeId("main")
-                .loopDoWhile(constant(true))
-                    .to(direct("pipes"))
-                    .to(direct("transfer-loop"))
-                .end();
-
-        from(direct("transfer-loop")).routeId("transfer-loop")
-                .split(body())
-                    .to(direct("transfer"))
-                .end();
-
-        from(direct("pipes")).routeId("pipes")
-                .setHeader(KubernetesConstants.KUBERNETES_SECRETS_LABELS, constant(Map.of("app", "crashftp")))
-                .to(kubernetesSecrets("kubernetes.default.svc").operation("listSecretsByLabels"));
 
         from(direct("transfer")).routeId("transfer")
                 .process(this::prepare)
