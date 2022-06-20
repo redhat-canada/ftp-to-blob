@@ -8,9 +8,17 @@
 - Reduce resource consumption
 
 ### Architecture 
-
+Option 1: Loop over secrets. Set application.properties property
+```properties
+transfer.loop=true
+```
 ![architecture](arch.png)
 
+Option2. Start over HTTP. Set application.properties property
+```properties
+transfer.loop=false
+```
+![architecture](arch2.png)
 
 ## Demo infrastructure
 OpenShift 4.10
@@ -25,4 +33,8 @@ oc apply -k manifests
 4. Deploy application
 ```bash
 mvn clean package -Dquarkus.kubernetes.deploy=true
+```
+5. Call transfer
+```bash
+curl http://${HOSTNAME}/transfer/${SECRET-NAME} 
 ```
